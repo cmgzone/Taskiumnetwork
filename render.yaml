@@ -1,0 +1,52 @@
+services:
+  # Backend API service
+  - type: web
+    name: tsk-platform-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm run start:server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tsk-platform-db
+          property: connectionString
+      - key: CORS_ORIGIN
+        sync: false
+
+  # Frontend static site
+  - type: web
+    name: tsk-platform-frontend
+    env: static
+    buildCommand: npm run build:client
+    staticPublishPath: ./client/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false # Will be set to API service URL
+
+databases:
+  - name: tsk-platform-db
+    databaseName: tsk_platform
+    user: tsk_admin
+    plan: free
+
+envVarGroups:
+  - name: tsk-platform-env
+    envVars:
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
